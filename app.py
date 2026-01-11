@@ -1,3 +1,5 @@
+from dotenv import load_dotenv
+load_dotenv()
 import os, re, json, time
 import requests
 from flask import Flask, request, jsonify, render_template
