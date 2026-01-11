@@ -1,0 +1,9 @@
+services:
+  - type: web
+    name: yappingers
+    env: docker
+    plan: free
+    autoDeploy: true
+    envVars:
+      - key: PORT
+        value: 10000
