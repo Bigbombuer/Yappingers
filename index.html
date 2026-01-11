@@ -1,0 +1,123 @@
+<!doctype html>
+<html>
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Yap Engine X</title>
+  <style>
+    body { font-family: system-ui; padding: 16px; max-width: 900px; margin: auto; }
+    .card { border: 1px solid #ddd; border-radius: 14px; padding: 14px; margin: 12px 0; }
+    input, select, button, textarea { width: 100%; padding: 12px; margin-top: 8px; border-radius: 10px; border: 1px solid #ccc; }
+    button { font-weight: 800; cursor: pointer; }
+    textarea { height: 260px; }
+    .row { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; }
+    .muted { opacity: 0.7; font-size: 13px; }
+    .ok { color: green; font-weight: 800; }
+    .err { color: crimson; font-weight: 800; }
+    .mini { font-size: 12px; opacity: 0.75; }
+    label { font-weight: 700; }
+  </style>
+</head>
+<body>
+
+  <h2>🔥 Yap Engine X (Auto Thread)</h2>
+  <p class="muted">Ambil tweet akun project → auto bikin thread AI + Airdrop (Indonesia). Tanpa Twitter API.</p>
+
+  <div class="card">
+    <div class="mini">Debug:</div>
+    <a href="/health" target="_blank"><button>✅ Check Secrets</button></a>
+    <p class="mini">Kalau cookie invalid → ambil ulang auth_token + ct0.</p>
+  </div>
+
+  <div class="card">
+    <label>Username X Project</label>
+    <input id="username" placeholder="@apex_exchange" value="@apex_exchange" />
+
+    <label>Filter Keyword (pisahkan pakai koma)</label>
+    <input id="keywords" placeholder="airdrop, points, testnet, agent, incentive" />
+    <p class="mini">Jika keyword terlalu ketat, sistem bisa fallback otomatis (kecuali Strict ON).</p>
+
+    <div class="row">
+      <div>
+        <label>Style</label>
+        <select id="style">
+          <option value="alpha">alpha (pro santai)</option>
+          <option value="savage">savage (tajam)</option>
+          <option value="degen">degen (rame lucu)</option>
+        </select>
+      </div>
+      <div>
+        <label>Jumlah tweet dibaca</label>
+        <input id="limit" type="number" value="25" min="10" max="35" />
+      </div>
+    </div>
+
+    <label>
+      <input type="checkbox" id="strict" />
+      Strict keyword (kalau tweet match sedikit, jangan fallback)
+    </label>
+
+    <button id="btnGen">⚡ Generate Thread</button>
+    <p id="status" class="muted"></p>
+  </div>
+
+  <div class="card">
+    <h3>Thread (CLEAN)</h3>
+    <textarea id="outClean" readonly></textarea>
+    <button onclick="copyText('outClean')">📋 Copy Clean</button>
+  </div>
+
+  <div class="card">
+    <h3>Thread (DEGEN)</h3>
+    <textarea id="outDegen" readonly></textarea>
+    <button onclick="copyText('outDegen')">📋 Copy Degen</button>
+  </div>
+
+<script>
+async function copyText(id) {
+  const el = document.getElementById(id);
+  el.select();
+  document.execCommand("copy");
+}
+
+const statusEl = document.getElementById("status");
+
+document.getElementById("btnGen").onclick = async () => {
+  statusEl.textContent = "⏳ Ambil tweet + generate thread...";
+
+  const username = document.getElementById("username").value.trim();
+  const style = document.getElementById("style").value;
+  const limit = parseInt(document.getElementById("limit").value || "25");
+  const keywords = document.getElementById("keywords").value.trim();
+  const strict = document.getElementById("strict").checked;
+
+  try {
+    const res = await fetch("/api/generate", {
+      method: "POST",
+      headers: {"Content-Type":"application/json"},
+      body: JSON.stringify({ username, style, limit, keywords, strict })
+    });
+
+    const j = await res.json();
+
+    if (!j.ok) {
+      statusEl.innerHTML = `<span class="err">❌ ${j.error}</span>`;
+      return;
+    }
+
+    document.getElementById("outClean").value = j.thread_clean_text || "";
+    document.getElementById("outDegen").value = j.thread_degen_text || "";
+
+    statusEl.innerHTML =
+      `<span class="ok">✅ DONE</span> | tweets used: ${j.tweets_used}` +
+      ` | keywords: ${(j.keywords_used||[]).join(", ")}` +
+      ` | strict: ${j.strict_mode ? "ON" : "OFF"}`;
+
+  } catch (e) {
+    statusEl.innerHTML = `<span class="err">❌ ${e}</span>`;
+  }
+};
+</script>
+
+</body>
+  </html>
